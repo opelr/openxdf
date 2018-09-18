@@ -1,0 +1,14 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+.vscode
+
+# Personal Data!
+*.xps
+*.csv
+*.txt
+*.xdf
+*.psxdf
+*.xps
