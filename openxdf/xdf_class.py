@@ -189,7 +189,7 @@ class XDF:
                 except (ValueError, TypeError):
                     tempDF = None
 
-                parent_DF = pd.concat([parent_DF, tempDF])
+                parent_DF = pd.concat([parent_DF, tempDF], sort=True)
             return parent_DF
 
         ### If there are multiple scorers
