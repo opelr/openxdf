@@ -1,0 +1,8 @@
+__title__ = "openxdf"
+__description__ = ""
+__url__ = ""
+__version__ = "0.3.0"
+__author__ = "Ryan Opel"
+__author_email__ = "ryan.a.opel@gmail.com"
+__license__ = "Apache 2.0"
+__copyright__ = "Copyright 2018 Ryan Opel"
