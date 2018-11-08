@@ -1,100 +1,169 @@
-"""[summary]
+"""
+openxdf.helpers
+~~~~~~~~~~~~~~~
+
+Helper functions
 """
 
-import xmltodict
-import json
-from collections import OrderedDict
+from datetime import datetime
 import re
-
 import pandas as pd
 
 
-def read_data(fpath: str) -> OrderedDict:
-    """Read XDF/JSON file and deidentify file
-    
-    Args:
-        fpath (str): [description]
-    
-    Returns:
-        OrderedDict: [description]
-    """
+def start_time(xdf):
+    data_file = xdf._data["xdf:DataFiles"]["xdf:DataFile"]
 
-    with open(fpath) as f:
-        opened_file = f.read()
-        xdf = xmltodict.parse(opened_file)
-
-    ## Scrubs XDF of identifying information
-    terms = ["xdf:FirstName", "xdf:LastName", "xdf:Comments"]
-    for term in terms:
-        xdf["xdf:OpenXDF"]["xdf:PatientInformation"][term] = None
-
-    return xdf
-
-
-def get_patient_ID(raw_data: OrderedDict):
-    """[summary]
-    """
-    return str(raw_data["xdf:OpenXDF"]["xdf:PatientInformation"]["xdf:ID"])
-
-
-def get_start_time(raw_data: OrderedDict):
-    """Return PSG recording start time as a datetime object
-    
-    Args:
-        raw_data (OrderedDict): [description]
-    """
-    try:
-        session = self.raw_data["xdf:OpenXDF"]["xdf:DataFiles"]["xdf:DataFile"][
-            "xdf:Sessions"
-        ]["xdf:Session"]
-    except TypeError:
-        session = self.raw_data["xdf:OpenXDF"]["xdf:DataFiles"]["xdf:DataFile"][0][
-            "xdf:Sessions"
-        ]["xdf:Session"]
+    if type(data_file) is dict:
+        session = data_file["xdf:Sessions"]["xdf:Session"]
+    elif type(data_file) is list:
+        session = data_file[0]["xdf:Sessions"]["xdf:Session"]
+    else:
+        raise TypeError
 
     return datetime.strptime(session["xdf:StartTime"][:-9], "%Y-%m-%dT%H:%M:%S.%f")
 
 
-def clean_column_names(columns: list) -> list:
-    """Remove 'nti:' and 'xdf:' motifs from a list
+def pull_header(xdf):
+    header = {}
+    data_file = xdf._data["xdf:DataFiles"]["xdf:DataFile"]
+
+    header["id"] = re.sub("[.]nkamp", "", data_file["xdf:File"])
+    header["epoch_length"] = int(xdf._data["xdf:EpochLength"])
+    header["frame_length"] = int(data_file["xdf:FrameLength"])
+    header["endian"] = data_file["xdf:Endian"]
+    header["file"] = data_file["xdf:File"]
+
+    return header
+
+
+def pull_sources(xdf):
+    sources = xdf._data["xdf:DataFiles"]["xdf:DataFile"]["xdf:Sources"]["xdf:Source"]
+
+    for source in sources:
+        for k, v in source.items():
+            new_key = clean_title(k)
+            source[new_key] = source.pop(k)
+
+            if re.match("[0-9]+[\.e][-]?[0-9]+", str(v)) is not None:
+                source[new_key] = float(str(v))
+            elif re.match("[0-9]+", str(v)) is not None:
+                source[new_key] = int(str(v))
+
+    return sources
+
+
+def pull_epochs(xdf):
+    """Extract epoch information from raw data
+        
+    Returns:
+        dict: Dict with epoch information
+    """
+    if "xdf:ScoringResults" not in xdf._data.keys():
+        return {}
+
+    epochs = xdf._data["xdf:ScoringResults"]["xdf:EpochInformation"]["xdf:Epoch"]
+    for epoch in epochs:
+        for k, v in epoch.items():
+            new_key = clean_title(k)
+            epoch[new_key] = epoch.pop(k)
+
+            if re.match("[0-9]+[\.|e][-]?[0-9]+", str(v)) is not None:
+                epoch[new_key] = float(v)
+            elif re.match("[0-9]+", str(v)) is not None:
+                epoch[new_key] = int(v)
+
+    return epochs
+
+
+def pull_scoring(xdf):
+    if "xdf:ScoringResults" not in xdf._data.keys():
+        return {}
+
+    scoring_info = []
+
+    scorers = xdf._data["xdf:ScoringResults"]["xdf:Scorers"]["xdf:Scorer"]
+    for scorer in scorers:
+        header = {}
+        header["first_name"] = scorer["xdf:FirstName"]
+        header["last_name"] = scorer["xdf:LastName"]
+
+        staging = {}
+        for epoch in scorer["xdf:SleepStages"]["xdf:SleepStage"]:
+            staging[epoch["xdf:EpochNumber"]] = epoch["xdf:Stage"]
+
+        scoring_info.append({"header": header, "staging": staging})
+
+    return scoring_info
+
+
+def pull_custom_event_list(xdf):
+    custom_events = {}
+
+    scorers = xdf._data["xdf:ScoringResults"]["xdf:Scorers"]["xdf:Scorer"]
+    for scorer in scorers:
+        ce_configs = scorer["nti:CEConfigs"]
+        if ce_configs is None:
+            continue
+        for config in ce_configs["nti:CEConfig"]:
+            ce_type = config["nti:CEType"]
+            custom_events[ce_type] = {}
+            custom_events[ce_type]["name"] = config["nti:CEName"]
+            custom_events[ce_type]["default_dur"] = int(config["nti:CEDefaultDur"])
+            custom_events[ce_type]["min_dur"] = int(config["nti:CEMinDur"])
+            custom_events[ce_type]["max_dur"] = int(config["nti:CEMaxDur"])
+
+    return custom_events
+
+
+def pull_events(xdf):
+    events = {}
+    section_headers = [
+        "xdf:Apneas",
+        "xdf:Hypopneas",
+        "xdf:Desaturations",
+        "xdf:Microarousals",
+        "xdf:Snores",
+        "xdf:LegMovements1",
+        "xdf:LegMovements2",
+        "nti:CustomEvents",
+    ]
+    sections = [[i, re.sub("s[0-9]?$", "", i)] for i in section_headers]
+
+    scorers = xdf._data["xdf:ScoringResults"]["xdf:Scorers"]["xdf:Scorer"]
+    for scorer in scorers:
+        s_name = scorer["xdf:FirstName"]
+        events[s_name] = {}
+        for head, body in sections:
+            h_name = clean_title(head)
+
+            clean_body = []
+
+            if scorer[head] is None:
+                continue
+
+            for e in scorer[head][body]:
+                clean_e = {clean_title(k): v for k, v in e.items()}
+                clean_body.append(clean_e)
+
+            events[s_name][h_name] = clean_body
+
+    return events
+
+
+def create_dataframe(xdf, epochs=True, events=True):
+    if epochs:
+        epoch_df = pd.DataFrame(xdf.epochs)
+    # TODO: Unpack openxdf.events and openxdf.scoring dicts into dataframes
+    raise NotImplementedError
+
+
+def clean_title(title: str) -> str:
+    """Remove 'nti:' and 'xdf:' motifs from a str
     
     Args:
-        columns (list): List of stings that has displays the motif
+        title (str): Single string with motif
     
     Returns:
-        list: List of cleaned strings
+        str: Cleaned string
     """
-    return [re.sub("nti:|xdf:", "", ii) for ii in columns]
-
-
-"""In-progress Section"""
-# TODO: Consider making static method, or class inheritance from XDF
-#       so that users only have to specify file & export paths.
-def pretty_xml(raw_data, patient_ID: str, export_path: str):
-    """Exports indented txt file for easier reading
-
-    Args:
-        raw_data (OrderedDict): [description]
-        patient_ID (str): [description]
-        export_path (str): [description]
-    """
-    export_file = export_path + patient_ID + "_pretty.txt"
-    with open(export_file, "w") as pretty:
-        pretty.write(json.dumps(raw_data, indent=4))
-
-
-# TODO: Is this relevant for this module?
-def compare_scores(self):
-    """Compare sleep scoring between different sleep techs
-        """
-    all_stages = self.get_scoring()
-
-    ## Casting indivStag to see if Scorers agree on staging
-    comp_scores = all_stages.pivot(
-        index="EpochNumber", columns="Scorer", values="Stage"
-    )
-    comp_scores["Agree"] = comp_scores.eq(comp_scores.iloc[:, 0], axis=0).all(1)
-    comp_scores["ID"] = self.patient_ID
-    comp_scores = pd.DataFrame(comp_scores.to_records())
-
-    return comp_scores
+    return re.sub("nti:|xdf:", "", title)
