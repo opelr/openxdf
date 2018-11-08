@@ -5,10 +5,11 @@ __pycache__/
 
 .vscode/*
 
-# Personal Data!
+# Data
 *.xps
 *.csv
 *.txt
 *.xdf
 *.psxdf
 *.xps
+*.nkamp
