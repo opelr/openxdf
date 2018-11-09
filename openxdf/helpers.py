@@ -27,11 +27,11 @@ def pull_header(xdf):
     header = {}
     data_file = xdf._data["xdf:DataFiles"]["xdf:DataFile"]
 
-    header["id"] = re.sub("[.]nkamp", "", data_file["xdf:File"])
-    header["epoch_length"] = int(xdf._data["xdf:EpochLength"])
-    header["frame_length"] = int(data_file["xdf:FrameLength"])
-    header["endian"] = data_file["xdf:Endian"]
-    header["file"] = data_file["xdf:File"]
+    header["ID"] = re.sub("[.]nkamp", "", data_file["xdf:File"])
+    header["EpochLength"] = int(xdf._data["xdf:EpochLength"])
+    header["FrameLength"] = int(data_file["xdf:FrameLength"])
+    header["Endian"] = data_file["xdf:Endian"]
+    header["File"] = data_file["xdf:File"]
 
     return header
 

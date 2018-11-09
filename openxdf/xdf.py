@@ -1,5 +1,5 @@
 """
-openxdf.xml
+openxdf.xdf
 ~~~~~~~~~~~
 
 This module provides the base class for reading XML data
