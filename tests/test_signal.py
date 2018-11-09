@@ -18,14 +18,14 @@ class Signal_Test(unittest.TestCase):
 
         keys = ["FrameLength", "EpochLength", "FrameWidth", "Channels"]
         assert all([i in frame_info.keys() for i in keys])
-    
+
     def test_read_file(self):
         frame_info = openxdf.signal._get_frame_information(self.xdf)
         signal_list = openxdf.signal.read_file(self.signal_path, frame_info)
 
         assert type(signal_list) is list
         assert len(signal_list[0].keys()) == len(frame_info["Channels"])
-    
+
     def test_Signal(self):
         frame_info = openxdf.signal._get_frame_information(self.xdf)
         signal_list = openxdf.signal.read_file(self.signal_path, frame_info)
@@ -40,4 +40,25 @@ class Signal_Test(unittest.TestCase):
         restruct = openxdf.signal._restruct_channel_epochs(signal_list, frame_info)
         assert type(restruct) is dict
         assert "FP1" in restruct.keys()
-    
+
+    def test_bytestring_to_num(self):
+        frame_info = openxdf.signal._get_frame_information(self.xdf)
+        signal_list = openxdf.signal.read_file(self.signal_path, frame_info)
+        epochs_bytes_dict = openxdf.signal._restruct_channel_epochs(signal_list, frame_info)
+
+        channel = frame_info["Channels"][0]
+        channel_name = channel["SourceName"]
+
+        bytestring = epochs_bytes_dict[channel_name][0]
+        sample_width = channel["SampleWidth"]
+        byteorder = frame_info["Endian"]
+        signed = channel["Signed"] == "true"
+
+        byte_int_list = openxdf.signal._bytestring_to_num(bytestring, sample_width, byteorder, signed)
+        assert type(byte_int_list) is list
+
+        epoch_length = frame_info["EpochLength"]
+        sample_freq = channel["SampleFrequency"]
+
+        assert len(byte_int_list) == epoch_length * sample_freq
+

@@ -46,11 +46,11 @@ def _get_frame_information(xdf) -> dict:
     """
 
     frame_length = xdf.header["FrameLength"]
-    epoch_length = xdf.header["EpochLength"]
 
     frame_info = {}
     frame_info["FrameLength"] = frame_length
-    frame_info["EpochLength"] = epoch_length
+    frame_info["EpochLength"] = xdf.header["EpochLength"]
+    frame_info["Endian"] = xdf.header["Endian"]
 
     channels = []
 
@@ -145,13 +145,37 @@ def _restruct_channel_epochs(signal_list: list, frame_info: dict):
     return channels_epochs_bytes
 
 
-def to_numeric(signal_list: list, frame_info: dict):
-    # epochs_bytes: dict = _restruct_channel_epochs(signal_list, frame_info)
-
-    # for channel in frame_info["Channels"]:
-    #     signed = channel["Signed"] == "true"
+def _bytestring_to_num(bytestring, sample_width, byteorder, signed):
+    conversion = []
+    for idx in range(0, len(bytestring), sample_width):
+        idx_bytes = bytestring[idx : idx + sample_width]
+        i = int.from_bytes(idx_bytes, byteorder=byteorder, signed=signed)
+        conversion.append(i)
     
-    raise NotImplementedError
+    return conversion
+
+
+def to_numeric(signal_list: list, frame_info: dict):
+    epochs_bytes_dict = _restruct_channel_epochs(signal_list, frame_info)
+    epochs_numeric_dict = {}
+
+    for channel in frame_info["Channels"]:
+        channel_name = channel["SourceName"]
+        sample_width = channel["SampleWidth"]
+        byteorder = frame_info["Endian"]
+        signed = channel["Signed"] == "true"
+        
+        epochs_numeric_list = []
+        epochs_bytes = epochs_bytes_dict[channel_name]
+
+        for epoch in epochs_bytes:
+            epochs_numeric = _bytestring_to_num(epoch, sample_width, byteorder, signed)
+            epochs_numeric_list.append(epochs_numeric)
+        
+        epochs_numeric_dict[channel_name] = epochs_numeric_list
+
+    return epochs_numeric_dict
+    # raise NotImplementedError
 
 
 def to_edf():
