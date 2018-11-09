@@ -113,7 +113,7 @@ class XDF:
     def _get_events(self):
         """Strip all custom events"""
         event_DF = pd.DataFrame()
-        
+
         scorers = self.raw_data["xdf:OpenXDF"]["xdf:ScoringResults"]["xdf:Scorers"]
         section_headers = [
             "xdf:Apneas",
@@ -126,7 +126,6 @@ class XDF:
             "nti:CustomEvents",
         ]
         sections = [[i, re.sub("s[0-9]?$", "", i)] for i in section_headers]
-
 
         def _internal_event_fn(scorer, parent_DF, sections):
             scorer_name = scorer["xdf:FirstName"]
@@ -187,8 +186,10 @@ class XDF:
 
         if epoch_DF is None or epoch_DF.empty or scoring_DF is None or scoring_DF.empty:
             return pd.DataFrame()
-    
-        merge_df_1 = scoring_DF.merge(event_DF, on=["EpochNumber", "Scorer"], how="left")
+
+        merge_df_1 = scoring_DF.merge(
+            event_DF, on=["EpochNumber", "Scorer"], how="left"
+        )
         merge_df_2 = merge_df_1.merge(epoch_DF, on="EpochNumber", how="left")
         merge_df_2.reset_index(inplace=True, drop=True)
 
