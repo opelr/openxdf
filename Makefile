@@ -3,7 +3,7 @@ dev-tests:
 
 dev-format:
 	pipenv run black openxdf
-	pipenv run flake8 --ignore="E501,E266,W503" src
+	pipenv run flake8 --ignore="E501,E266,W503" openxdf
 
 package-dist:
 	pipenv run python setup.py sdist

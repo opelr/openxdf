@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 openxdf.xdf
 ~~~~~~~~~~~
@@ -28,12 +30,12 @@ class OpenXDF(object):
 
     def _parse(self, fpath, deidentify) -> dict:
         """Reads OpenXDF file and converts XML structure to a dict.
-        
+
         Args:
             fpath (str): Filepath
             deidentify (bool): Should potentially sensitive information be
                 removed upon reading the file?
-        
+
         Returns:
             dict: XDF file as a dict object.
         """
@@ -178,6 +180,7 @@ class OpenXDF(object):
     def events(self):
         """Returns a dict of all events across all scorers, incl. custom events
         """
+
         events = {}
         section_headers = [
             "xdf:Apneas",
@@ -212,7 +215,16 @@ class OpenXDF(object):
         return events
 
     @property
-    def dataframe(self, epochs=True, events=True):
+    def dataframe(self, epochs=True, events=True) -> pd.DataFrame:
+        """Returns DataFrame of scoring, epoch, and event information.
+
+        Arguments:
+            epochs (bool, optional): Defaults to True. Include epoch info?
+            events (bool, optional): Defaults to True. Include event info?
+
+        Returns:
+            pd.DataFrame: DataFrame of scoring, epochs, and events.
+        """
 
         # Scoring
         scoring_df = pd.DataFrame()

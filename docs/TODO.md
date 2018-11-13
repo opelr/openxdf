@@ -3,6 +3,7 @@
 ## Not Started
 
 1. Add method to xdf module that determines which level of OpenXDF implementation standard (e.g. 1, 2, or 3) the file is.
+1. Add signal.to_edf method
 
 ## In Progress
 

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 openxdf.signal
 ~~~~~~~~~~~~~~~
@@ -110,7 +112,7 @@ class Signal(object):
             channels (list or str, optional): Defaults to None.
                 Vector of channel names to be included in final output.
                 If None, all channels will be included.
-        
+
         Returns:
             dict: Dictionary with each channel as keys, and a list of epochs
                 as entries.
