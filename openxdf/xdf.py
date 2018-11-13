@@ -12,11 +12,11 @@ import re
 
 from .helpers import clean_title
 
-# from .helpers import start_time, pull_header, pull_sources, pull_epochs, pull_scoring
-# from .helpers import pull_custom_event_list, pull_events
 
+class OpenXDF(object):
+    """Core OpenXDF object. Wraps a single XDF header document.
+    """
 
-class OpenXDF:
     def __init__(self, filepath: str, deidentify=True):
         self._filepath = filepath
         self._data = self._parse(filepath, deidentify)
@@ -24,7 +24,17 @@ class OpenXDF:
     def __repr__(self):
         return f"<OpenXDF [{self.id}]>"
 
-    def _parse(self, fpath, deidentify):
+    def _parse(self, fpath, deidentify) -> dict:
+        """Reads OpenXDF file and converts XML structure to a dict.
+        
+        Args:
+            fpath (str): Filepath
+            deidentify (bool): Should potentially sensitive information be
+                removed upon reading the file?
+        
+        Returns:
+            dict: XDF file as a dict object.
+        """
         with open(fpath) as f:
             opened_file = f.read()
             xdf_odict = xmltodict.parse(opened_file)
@@ -58,6 +68,9 @@ class OpenXDF:
 
     @property
     def header(self):
+        """Returns general file encoding information.
+        """
+
         header = {}
         data_file = self._data["xdf:DataFiles"]["xdf:DataFile"]
 
@@ -71,7 +84,10 @@ class OpenXDF:
 
     @property
     def sources(self):
-        sources = self._data["xdf:DataFiles"]["xdf:DataFile"]["xdf:Sources"]["xdf:Source"]
+        """Information on raw data sources (e.g. signals)"""
+        sources = self._data["xdf:DataFiles"]["xdf:DataFile"]["xdf:Sources"][
+            "xdf:Source"
+        ]
 
         for source in sources:
             for k, v in source.items():
@@ -87,11 +103,12 @@ class OpenXDF:
 
     @property
     def epochs(self):
-        """Extract epoch information from raw data
+        """Extracts epoch information
 
         Returns:
             dict: Dict with epoch information
         """
+
         if "xdf:ScoringResults" not in self._data.keys():
             return {}
 
@@ -110,6 +127,8 @@ class OpenXDF:
 
     @property
     def scoring(self):
+        """Extracts sleep scoring information"""
+
         if "xdf:ScoringResults" not in self._data.keys():
             return {}
 
@@ -131,6 +150,8 @@ class OpenXDF:
 
     @property
     def custom_event_list(self):
+        """Returns a dict of the custom events defined across scorers"""
+
         custom_events = {}
 
         scorers = self._data["xdf:ScoringResults"]["xdf:Scorers"]["xdf:Scorer"]
@@ -147,9 +168,11 @@ class OpenXDF:
                 custom_events[ce_type]["max_dur"] = int(config["nti:CEMaxDur"])
 
         return custom_events
-    
+
     @property
     def events(self):
+        """Returns a dict of all events across all scorers, incl. custom events
+        """
         events = {}
         section_headers = [
             "xdf:Apneas",
@@ -182,11 +205,10 @@ class OpenXDF:
                 events[s_name][h_name] = clean_body
 
         return events
-    
+
     @property
     def dataframe(self, epochs=True, events=True):
         # if epochs:
         #     epoch_df = pd.DataFrame(xdf.epochs)
         # TODO: Unpack openxdf.events and openxdf.scoring dicts into dataframes
         raise NotImplementedError
-    

@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
+
 from .context import openxdf
 import unittest
 
 
-class Signal_Test(unittest.TestCase):
-    """[summary]"""
+class Helpers_Test(unittest.TestCase):
+    """Test cases for the openxdf.helpers module"""
 
     def __init__(self, methodName="runTest"):
         super().__init__(methodName)

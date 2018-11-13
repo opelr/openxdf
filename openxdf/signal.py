@@ -9,7 +9,12 @@ from .exceptions import XDFSourceError
 from .helpers import _bytestring_to_num, _restruct_channel_epochs
 
 
-class Signal:
+class Signal(object):
+    """Core Signal object. All Signal objects wrap a single raw-signal file,
+    and associate that file with its XDF header document through an OpenXDF
+    class object.
+    """
+
     def __init__(self, xdf, filepath):
         self._xdf = xdf
         self._fpath = filepath
@@ -19,11 +24,17 @@ class Signal:
         return f"<Signal [{self._xdf.id}]>"
 
     @property
-    def _frame_information(self):
-        """[summary]
-        
+    def _frame_information(self) -> dict:
+        """Returns information about the XDF dataframe and signal channels
+
         Returns:
             dict: [description]
+            {"FrameLength": _, "EpochLength": _, "Endian": _, "FrameWidth": _,
+             "Channels": [
+                 {"SourceName": _, "SampleWidth": _, "SampleFrequency": _,
+                  "ChannelWidth": _, "Signed": _},
+                  {...},
+             ]}
         """
 
         frame_length = self._xdf.header["FrameLength"]
@@ -57,9 +68,9 @@ class Signal:
 
         return frame_info
 
-    def _parse(self):
-        """[summary]
-        
+    def _parse(self) -> list:
+        """Reads signal-file data into a list of dictionaries.
+
         Returns:
             list: [{"FP1": b... , "FP2": b...},
                    {"FP1": b... , "FP2": b...},
@@ -92,34 +103,53 @@ class Signal:
 
         return file_list
 
-    def to_numeric(self):
-        raise NotImplementedError
+    def to_numeric(self, channels=None) -> dict:
+        """Converts selection of channels from binary to a numeric vector.
+
+        Args:
+            channels (list or str, optional): Defaults to None.
+                Vector of channel names to be included in final output.
+                If None, all channels will be included.
+        
+        Returns:
+            dict: Dictionary with each channel as keys, and a list of epochs
+                as entries.
+                {"FP1": [[100, -10, 5, -25,...], [200, -20, 10, -50, ...]], ...}
+        """
+
+        # Handle `channels` kwarg
+        if type(channels) is str:
+            channels = [channels]
+        if type(channels) is list:
+            pass
+
+        signal_list = self._data
+        frame_info = self._frame_information
+
+        epochs_bytes_dict = _restruct_channel_epochs(signal_list, frame_info)
+        epochs_numeric_dict = {}
+
+        for channel in frame_info["Channels"]:
+            channel_name = channel["SourceName"]
+            if channels is not None and channel_name not in channels:
+                continue
+
+            sample_width = channel["SampleWidth"]
+            byteorder = frame_info["Endian"]
+            signed = channel["Signed"] == "true"
+
+            epochs_numeric_list = []
+            epochs_bytes = epochs_bytes_dict[channel_name]
+
+            for epoch in epochs_bytes:
+                epochs_numeric = _bytestring_to_num(
+                    epoch, sample_width, byteorder, signed
+                )
+                epochs_numeric_list.append(epochs_numeric)
+
+            epochs_numeric_dict[channel_name] = epochs_numeric_list
+
+        return epochs_numeric_dict
 
     def to_edf(self):
         raise NotImplementedError
-
-
-def _to_numeric(signal_list: list, frame_info: dict):
-    epochs_bytes_dict = _restruct_channel_epochs(signal_list, frame_info)
-    epochs_numeric_dict = {}
-
-    for channel in frame_info["Channels"]:
-        channel_name = channel["SourceName"]
-        sample_width = channel["SampleWidth"]
-        byteorder = frame_info["Endian"]
-        signed = channel["Signed"] == "true"
-
-        epochs_numeric_list = []
-        epochs_bytes = epochs_bytes_dict[channel_name]
-
-        for epoch in epochs_bytes:
-            epochs_numeric = _bytestring_to_num(epoch, sample_width, byteorder, signed)
-            epochs_numeric_list.append(epochs_numeric)
-
-        epochs_numeric_dict[channel_name] = epochs_numeric_list
-
-    return epochs_numeric_dict
-
-
-def to_edf():
-    raise NotImplementedError
