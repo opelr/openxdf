@@ -7,6 +7,8 @@ Helper functions
 
 from datetime import datetime
 import re
+from struct import iter_unpack
+from itertools import chain
 import pandas as pd
 
 
@@ -53,10 +55,19 @@ def _restruct_channel_epochs(signal_list: list, frame_info: dict):
 
 
 def _bytestring_to_num(bytestring, sample_width, byteorder, signed):
-    conversion = []
-    for idx in range(0, len(bytestring), sample_width):
-        idx_bytes = bytestring[idx : idx + sample_width]
-        i = int.from_bytes(idx_bytes, byteorder=byteorder, signed=signed)
-        conversion.append(i)
+    fmt = "@"
+    if byteorder.lower() == "little":
+        fmt = "<"
+    elif byteorder.lower() == "big":
+        fmt = ">"
 
-    return conversion
+    ctype = {"1": "b", "2": "h", "4": "l", "8": "q"}
+    c = ctype[str(sample_width)]
+    
+    if signed:
+        fmtc = fmt + c
+    else:
+        fmtc = fmt + c.upper()
+
+    conversion = iter_unpack(fmtc, bytestring)
+    return list(chain(*conversion))

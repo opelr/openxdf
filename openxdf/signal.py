@@ -5,10 +5,6 @@ openxdf.signal
 This module allows users to read the raw signal data associated with PSG files
 """
 
-# import openxdf
-# xdf = openxdf.OpenXDF("tests/data/test.xdf")
-# fpath = "tests/data/test.nkamp"
-
 from .exceptions import XDFSourceError
 from .helpers import _bytestring_to_num, _restruct_channel_epochs
 
