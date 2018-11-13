@@ -9,6 +9,8 @@ import xmltodict
 import json
 from datetime import datetime
 import re
+import pandas as pd
+from math import ceil
 
 from .helpers import clean_title
 
@@ -140,9 +142,12 @@ class OpenXDF(object):
             header["first_name"] = scorer["xdf:FirstName"]
             header["last_name"] = scorer["xdf:LastName"]
 
-            staging = {}
+            staging = []
             for epoch in scorer["xdf:SleepStages"]["xdf:SleepStage"]:
-                staging[epoch["xdf:EpochNumber"]] = epoch["xdf:Stage"]
+                e = {}
+                e["EpochNumber"] = int(epoch["xdf:EpochNumber"])
+                e["Stage"] = epoch["xdf:Stage"]
+                staging.append(e)
 
             scoring_info.append({"header": header, "staging": staging})
 
@@ -208,7 +213,70 @@ class OpenXDF(object):
 
     @property
     def dataframe(self, epochs=True, events=True):
-        # if epochs:
-        #     epoch_df = pd.DataFrame(xdf.epochs)
-        # TODO: Unpack openxdf.events and openxdf.scoring dicts into dataframes
-        raise NotImplementedError
+
+        # Scoring
+        scoring_df = pd.DataFrame()
+        for scorer in self.scoring:
+            _staging_df = pd.DataFrame(scorer["staging"])
+            _staging_df["Scorer"] = scorer["header"]["first_name"]
+            scoring_df = scoring_df.append(_staging_df)
+
+        scoring_df = scoring_df.sort_values(["EpochNumber", "Scorer"])
+        scoring_df = scoring_df.reset_index(drop=True)
+
+        # Epochs
+        if epochs:
+            epoch_df = pd.DataFrame(self.epochs)
+
+        # Events
+        if events:
+            events_df = pd.DataFrame()
+            for scorer in self.events:
+                _event_df = pd.DataFrame()
+                for event in self.events[scorer]:
+                    _temp_df = pd.DataFrame(self.events[scorer][event])
+                    _temp_df["Event"] = event
+                    _temp_df["Scorer"] = scorer
+                    _event_df = pd.concat(
+                        [_event_df, _temp_df], axis=0, ignore_index=True, sort=False
+                    )
+                events_df = pd.concat(
+                    [events_df, _event_df], axis=0, ignore_index=True, sort=False
+                )
+
+            if not events_df.empty:
+                events_df["Time"] = events_df["Time"].apply(
+                    lambda t: datetime.strptime(t[:-9], "%Y-%m-%dT%H:%M:%S.%f")
+                )
+                events_df["ElapsedTime"] = events_df["Time"] - self.start_time
+                events_df["EpochNumber"] = events_df["ElapsedTime"].apply(
+                    lambda x: int(ceil(x.seconds / 30))
+                )
+
+                ## Reset index and return
+                events_df = events_df.sort_values(
+                    ["EpochNumber", "Event", "Class", "Scorer"]
+                )
+                events_df = events_df.reset_index(drop=True)
+
+        # Merge DataFrames
+        output_df = pd.DataFrame()
+        if not scoring_df.empty:
+            output_df = scoring_df.copy()
+
+        if epochs:
+            if not epoch_df.empty:
+                common_columns = list(set(output_df.columns) & set(epoch_df.columns))
+                output_df = pd.merge(
+                    output_df, epoch_df, how="outer", on=common_columns
+                )
+
+        if events:
+            if not events_df.empty:
+                common_columns = list(set(output_df.columns) & set(events_df.columns))
+                output_df = pd.merge(
+                    output_df, events_df, how="outer", on=common_columns
+                )
+
+        output_df = output_df.reset_index(drop=True)
+        return output_df

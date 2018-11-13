@@ -2,6 +2,8 @@
 
 from .context import openxdf
 import unittest
+from datetime import datetime
+import pandas as pd
 
 
 class XDF_Test(unittest.TestCase):
@@ -22,7 +24,7 @@ class XDF_Test(unittest.TestCase):
 
     def test_start_time(self):
         start_time = self.xdf.start_time
-        # print(start_time)
+        assert type(start_time) is datetime
 
     def test_headers(self):
         header = self.xdf.header
@@ -38,4 +40,10 @@ class XDF_Test(unittest.TestCase):
 
     def test_scoring(self):
         scoring = self.xdf.scoring
-        
+        assert type(scoring) is list
+        assert len(scoring) >= 1
+
+    def test_dataframe(self):
+        df = self.xdf.dataframe
+        assert type(df) is pd.DataFrame
+        assert not df.empty
