@@ -33,10 +33,12 @@ class Signal_Test(unittest.TestCase):
         assert type(signal_list) is list
         assert len(signal_list[0].keys()) == len(frame_info["Channels"])
 
-    # def test_to_numeric(self):
-    #     frame_info = openxdf.signal._get_frame_information(self.xdf)
-    #     signal_list = openxdf.signal.read_file(self.signal_path, frame_info)
+    def test_to_numeric(self):
+        signal = openxdf.Signal(self.xdf, self.signal_path)
+        numeric = signal.to_numeric(channels="FP1")
 
-    #     numeric = openxdf.signal._to_numeric(signal_list, frame_info)
-    #     assert type(numeric) is dict
-    #     assert "FP1" in numeric.keys()
+        assert type(numeric) is dict
+        assert "FP1" in numeric.keys()
+
+        total_epochs = max([i["EpochNumber"] for i in self.xdf.epochs])
+        assert len(numeric["FP1"]) == total_epochs
