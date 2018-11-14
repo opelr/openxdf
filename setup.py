@@ -2,12 +2,12 @@ from distutils.core import setup
 
 setup(
     name='OpenXDF',
-    version='0.2.0',
+    version='0.3.0',
     author='Ryan Opel',
     author_email='ryan.a.opel@gmail.com',
     packages=['openxdf'],
     license='LICENSE',
-    description='Processing exported Polysmith PSG files in OpenXDF format',
+    description='OpenXDF is a Python module built for interacting with Open eXchange Data Format files.',
     long_description=open('README.md').read(),
     install_requires=[
         "pandas >= 0.23.0",

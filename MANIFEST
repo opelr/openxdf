@@ -3,6 +3,9 @@ LICENSE
 README.md
 setup.py
 openxdf\__init__.py
+openxdf\__version__.py
+openxdf\exceptions.py
 openxdf\helpers.py
-openxdf\pretty_xdf.py
-openxdf\xdf_class.py
+openxdf\pretty.py
+openxdf\signal.py
+openxdf\xdf.py

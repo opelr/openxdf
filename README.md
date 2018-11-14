@@ -1,11 +1,8 @@
 # OpenXDF
 
-Processing exported Polysmith PSG files in OpenXDF format.
+OpenXDF is a Python module built for interacting with [Open eXchange Data Format](http://openxdf.org/) files.
 
-This repository contains scripts that assist with batch processing [Polysmith](http://www.nihonkohden.de/products/neurology/eeg/polysomnography/polysmith.html?L=1) overnight sleep studies (PSG) from the sleep clinic.
-
-These functions process decrpyted OpenXDF files -- this library contains functions which will ensure file deidentification, grab sleep tech comments, and save XDF files as JSONs to save space. Files are then loaded again and sleep staging/scoring information is scraped for each study.
-
+OpenXDF files are Unicode-encoded, XML-formatted documents that provide header information for signal data. This module gives users simple methods of accessing the data stored in these documents, and helps associate the header information stored in `.xdf` files together with the raw data it's referencing.
 
 ## Table of Contents
 
@@ -17,28 +14,47 @@ These functions process decrpyted OpenXDF files -- this library contains functio
 
 ## Getting Started
 
-1. Clone or download the repository to your local machine.
-2. Use `pipenv install` on the `.tar.gz` file in the `dist` folder.
+Currently...
+
+1. Use `pipenv install` on the `.tar.gz` file in the releases tab.
+
+Soon...
+
+```$ pip install openxdf```
 
 ### Prerequisites
 
-Requires Python with `pipenv` installed.
+Currently requires Python 3.6 with `pipenv` installed.
 
 ## Usage
 
-1. ...
-2. ...
-3. ...
+```python
+>>> import openxdf
+>>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
+>>> xdf.header
+{"ID": "Example", "EpochLength": 30, "FrameLength": 1, "Endian": "little",
+"File": "Example.rawdata"}
+>>> xdf.sources
+[{"SourceName": "FP1", "Unit": 1e-06, "UseGridScale": "false",
+  "MinSamplingRate": 200, "MinSampleWidth": 1, "Ignore": "false",
+  "PhysicalMax": 3199.9, "Signed": "true", "SampleWidth": 2,
+  "SampleFrequency": 200, "DigitalMax": 32767, "DigitalMin": -32768,
+  "PhysicalMin": -3200, "DigitalToVolts": 0.0976563},
+  {...},
+]
+
+>>> signals = openxdf.Signal(xdf, "/path/to/file/.../example.data")
+>>> signals.to_numeric(["FP1", "EOG"])
+{"FP1": [[100, -10, 5, -25,...], [200, -20, 10, -50, ...]],
+"EOG": [[10, -35, 25, -40,...], [65, 20, -100, -10, ...]]}
+>>> signals.to_edf("/output/path/.../example.edf")
+```
 
 ## Development
-
-Instructions for development and contributing
 
 ### Contributing
 
 Please checkout a development branch for whatever features you want to work on.
-
-Run `make package-dist` to 
 
 ### Running Tests
 

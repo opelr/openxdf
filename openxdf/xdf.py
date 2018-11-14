@@ -98,9 +98,9 @@ class OpenXDF(object):
                 new_key = clean_title(k)
                 source[new_key] = source.pop(k)
 
-                if re.match("[0-9]+[\.e][-]?[0-9]+", str(v)) is not None:
+                if re.match("[-]?[0-9]+[\.e][-]?[0-9]+", str(v)) is not None:
                     source[new_key] = float(str(v))
-                elif re.match("[0-9]+", str(v)) is not None:
+                elif re.match("[-]?[0-9]+", str(v)) is not None:
                     source[new_key] = int(str(v))
 
         return sources
