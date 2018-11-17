@@ -45,6 +45,7 @@ class Signal(object):
         frame_info["FrameLength"] = frame_length
         frame_info["EpochLength"] = self._xdf.header["EpochLength"]
         frame_info["Endian"] = self._xdf.header["Endian"]
+        frame_info["Num_Epochs"] = max([i["EpochNumber"] for i in self._xdf.epochs])
 
         channels = []
 
@@ -153,5 +154,86 @@ class Signal(object):
 
         return epochs_numeric_dict
 
-    def to_edf(self):
-        raise NotImplementedError
+    def _edf_header(self):
+        """Returns .edf header string
+
+        See https://www.edfplus.info/specs/edf.html for header specification
+        """
+
+        def _pad(x, width, char=" "):
+            return str(x).ljust(width, char)
+
+        # Create Header dict
+        num_chans = len(self._frame_information["Channels"])
+
+        header = {}
+        header["version"] = _pad("0", 8)
+        header["pat_id"] = _pad(self._xdf.id, 80)
+        header["red_ic"] = _pad(self._xdf.id, 80)
+        header["startdate"] = _pad(self._xdf.start_time.strftime("%d.%m.%y"), 8)
+        header["starttime"] = _pad(self._xdf.start_time.strftime("%H.%M.%S"), 8)
+        header["num_bytes"] = _pad(256 * (1 + num_chans), 8)
+        header["reserved"] = _pad("Reserved 44 bytes", 44, "-")
+        header["num_records"] = _pad(self._frame_information["Num_Epochs"], 8)
+        header["record_dur"] = _pad(self._frame_information["EpochLength"], 8)
+        header["num_signals"] = _pad(num_chans, 4)
+
+        # Channel header dict
+        channel_properties = {
+            "chan_name": ["SourceName", 16],
+            "chan_transducer": [None, 80],
+            "chan_unit": ["Unit", 8],
+            "chan_physicalMin": ["PhysicalMin", 8],
+            "chan_physicalMax": ["PhysicalMax", 8],
+            "chan_digitalMin": ["DigitalMin", 8],
+            "chan_digitalMax": ["DigitalMax", 8],
+            "chan_prefilter": [None, 80],
+            "chan_sampleFreq": ["SampleFrequency", 8],
+            "chan_reserved": [None, 32],
+        }
+
+        header["channel_header"] = ""
+        for prop in channel_properties:
+            prop_key, prop_width = channel_properties[prop]
+
+            for source in self._xdf.sources:
+                prop_value = source[prop_key] if prop_key is not None else ""
+                header["channel_header"] += _pad(prop_value, prop_width)
+
+        # Build header from component dictionary
+        header_str = ""
+        for key in header:
+            header_str += header[key]
+
+        return header_str
+
+    def _edf_body(self):
+        """Returns .edf body data
+        """
+        edf_body = []
+        channels = self._frame_information["Channels"]
+
+        for channel in channels:
+            channel_name = channel["SourceName"]
+            edf_channel = b"".join([i[channel_name] for i in self._data])
+            edf_body.append(edf_channel)
+
+        return b"".join(edf_body)
+
+    def to_edf(self, opath: str):
+        """Exports signal file as .edf
+
+        Args:
+            opath (str): Output file path
+
+        Example:
+            >>> signals = openxdf.Signal(xdf, "/path/to/file/.../example.data")
+            >>> signals.to_edf("/output/path/.../example.edf")
+        """
+
+        edf_header = self._edf_header()
+        edf_body = self._edf_body()
+
+        with open(opath, "wb") as edf_file:
+            edf_file.write(edf_header.encode("ASCII"))
+            edf_file.write(edf_body)

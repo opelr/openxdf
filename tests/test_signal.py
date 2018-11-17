@@ -12,33 +12,57 @@ class Signal_Test(unittest.TestCase):
         self.xdf_path = "tests/data/test.xdf"
         self.signal_path = "tests/data/test.nkamp"
         self.xdf = openxdf.OpenXDF(self.xdf_path)
+        self.signal = openxdf.Signal(self.xdf, self.signal_path)
 
     def test_Signal(self):
-        signal = openxdf.Signal(self.xdf, self.signal_path)
-        assert type(signal) == openxdf.Signal
-    
+        assert type(self.signal) == openxdf.Signal
+
     def test_frame_information(self):
-        signal = openxdf.Signal(self.xdf, self.signal_path)
-        frame_info = signal._frame_information
+        frame_info = self.signal._frame_information
         assert type(frame_info) is dict
 
-        keys = ["FrameLength", "EpochLength", "FrameWidth", "Channels"]
+        keys = [
+            "FrameLength",
+            "EpochLength",
+            "FrameWidth",
+            "Endian",
+            "Num_Epochs",
+            "Channels",
+        ]
         assert all([i in frame_info.keys() for i in keys])
 
     def test_parse(self):
-        signal = openxdf.Signal(self.xdf, self.signal_path)
-        signal_list = signal._parse()
-        frame_info = signal._frame_information
+        signal_list = self.signal._parse()
+        frame_info = self.signal._frame_information
 
         assert type(signal_list) is list
         assert len(signal_list[0].keys()) == len(frame_info["Channels"])
 
     def test_to_numeric(self):
-        signal = openxdf.Signal(self.xdf, self.signal_path)
-        numeric = signal.to_numeric(channels="FP1")
+        numeric = self.signal.to_numeric(channels="FP1")
 
         assert type(numeric) is dict
         assert "FP1" in numeric.keys()
 
         total_epochs = max([i["EpochNumber"] for i in self.xdf.epochs])
         assert len(numeric["FP1"]) == total_epochs
+
+    def test_edf_header(self):
+        edf_header = self.signal._edf_header()
+        assert type(edf_header) is str
+
+        num_channels = len(self.signal._xdf.sources)
+        init_len = 8 + 80 + 80 + 8 + 8 + 8 + 44 + 8 + 8 + 4
+        chan_len = 16 + 80 + 8 + 8 + 8 + 8 + 8 + 80 + 8 + 32
+        total_len = init_len + (num_channels * chan_len)
+        assert len(edf_header) == total_len
+
+        with open("tests/data/edf_header.edf", "wb") as f:
+            f.write(edf_header.encode("ASCII"))
+
+    def test_edf_body(self):
+        edf_body = self.signal._edf_body()
+        assert type(edf_body) is bytes
+  
+    def test_to_edf(self):
+        self.signal.to_edf("tests/data/test.edf")
