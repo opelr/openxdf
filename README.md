@@ -2,7 +2,7 @@
 
 OpenXDF is a Python module built for interacting with [Open eXchange Data Format](http://openxdf.org/) files.
 
-OpenXDF files are Unicode-encoded, XML-formatted documents that provide header information for signal data. This module gives users simple methods of accessing the data stored in these documents, and helps associate the header information stored in `.xdf` files together with the raw data it's referencing.
+OpenXDF files are XML-based header files that provide all of the information necessary to interpret a signal data file. This module gives users simple methods of accessing the data stored in these documents, and helps associate the header information stored in `.xdf` files together with the raw data it's referencing.
 
 ## Table of Contents
 
