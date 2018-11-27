@@ -44,7 +44,7 @@ class Signal_Test(unittest.TestCase):
         assert type(numeric) is dict
         assert "FP1" in numeric.keys()
 
-        total_epochs = max([i["EpochNumber"] for i in self.xdf.epochs])
+        total_epochs = self.signal._frame_information["Num_Epochs"]
         assert len(numeric["FP1"]) == total_epochs
 
     def test_edf_header(self):
@@ -52,17 +52,13 @@ class Signal_Test(unittest.TestCase):
         assert type(edf_header) is str
 
         num_channels = len(self.signal._xdf.sources)
-        init_len = 8 + 80 + 80 + 8 + 8 + 8 + 44 + 8 + 8 + 4
-        chan_len = 16 + 80 + 8 + 8 + 8 + 8 + 8 + 80 + 8 + 32
+        init_len = 256
+        chan_len = 256
         total_len = init_len + (num_channels * chan_len)
         assert len(edf_header) == total_len
 
         with open("tests/data/edf_header.edf", "wb") as f:
-            f.write(edf_header.encode("ASCII"))
+            f.write(edf_header.encode("ascii"))
 
-    def test_edf_body(self):
-        edf_body = self.signal._edf_body()
-        assert type(edf_body) is bytes
-  
     def test_to_edf(self):
         self.signal.to_edf("tests/data/test.edf")
