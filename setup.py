@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name="openxdf",
-    version="0.4.0",
+    version="0.4.1",
     author="Ryan Opel",
     author_email="ryan.a.opel@gmail.com",
     description="OpenXDF is a Python module built for interacting with Open eXchange Data Format files.",

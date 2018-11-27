@@ -145,6 +145,9 @@ class OpenXDF(object):
             header["last_name"] = scorer["xdf:LastName"]
 
             staging = []
+            if scorer["xdf:SleepStages"] is None or scorer["xdf:SleepStages"]["xdf:SleepStage"] is None:
+                continue
+            
             for epoch in scorer["xdf:SleepStages"]["xdf:SleepStage"]:
                 e = {}
                 e["EpochNumber"] = int(epoch["xdf:EpochNumber"])
@@ -207,6 +210,9 @@ class OpenXDF(object):
                     continue
 
                 for e in scorer[head][body]:
+                    if e is None or type(e) is not dict:
+                        continue
+                    
                     clean_e = {clean_title(k): v for k, v in e.items()}
                     clean_body.append(clean_e)
 
