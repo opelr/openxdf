@@ -6,7 +6,7 @@ dev-format:
 	pipenv run flake8 --ignore="E501,E266,W503" openxdf
 
 package-dist:
-	pipenv run python setup.py sdist
+	pipenv run python setup.py sdist bdist_wheel
 
 upload-dist:
 	pipenv run python -m twine upload dist/*
