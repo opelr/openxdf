@@ -7,3 +7,6 @@ dev-format:
 
 package-dist:
 	pipenv run python setup.py sdist
+
+upload-dist:
+	pipenv run python -m twine upload dist/*

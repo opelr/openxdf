@@ -14,12 +14,6 @@ OpenXDF files are XML-based header files that provide all of the information nec
 
 ## Getting Started
 
-Currently...
-
-1. Use `pipenv install` on the `.tar.gz` file in the releases tab.
-
-Soon...
-
 ```$ pip install openxdf```
 
 ### Prerequisites
