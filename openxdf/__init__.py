@@ -31,8 +31,8 @@ from .__version__ import __author__, __author_email__, __license__
 from .__version__ import __copyright__
 
 
-from .xdf import OpenXDF
-from .signal import Signal
+from openxdf.xdf import OpenXDF
+from openxdf.signal import Signal
 
 
 __all__ = ["OpenXDF", "Signal"]
