@@ -37,6 +37,11 @@ class XDF_Test(unittest.TestCase):
         source = self.xdf.sources
         assert type(source) is list
         assert type(source[0]) is dict
+    
+    def test_montages(self):
+        montage = self.xdf.montages
+        assert type(montage) is dict
+        assert montage != {}
 
     def test_scoring(self):
         scoring = self.xdf.scoring

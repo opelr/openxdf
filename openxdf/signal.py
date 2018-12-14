@@ -80,7 +80,7 @@ class Signal(object):
         frame_info["Channels"] = channels
 
         return frame_info
-    
+
     @property
     def _read_file(self) -> bytes:
         """Returns signal file as bytestring
@@ -228,15 +228,15 @@ class Signal(object):
 
         return header_str
 
-    def to_edf(self, opath: str):
-        """Exports signal file as .edf
+    def to_edf_raw(self, opath: str):
+        """Exports raw, uncrossed signals as .edf
 
         Args:
             opath (str): Output file path
 
         Example:
             >>> signals = openxdf.Signal(xdf, "/path/to/file/.../example.data")
-            >>> signals.to_edf("/output/path/.../example.edf")
+            >>> signals.to_edf_raw("/output/path/.../example_uncrossed.edf")
         """
 
         edf_header = self._edf_header()

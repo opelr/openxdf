@@ -60,5 +60,5 @@ class Signal_Test(unittest.TestCase):
         with open("tests/data/edf_header.edf", "wb") as f:
             f.write(edf_header.encode("ascii"))
 
-    def test_to_edf(self):
-        self.signal.to_edf("tests/data/test.edf")
+    def test_to_edf_raw(self):
+        self.signal.to_edf_raw("tests/data/test.edf")

@@ -106,6 +106,38 @@ class OpenXDF(object):
         return sources
 
     @property
+    def montages(self):
+        """Information on montages"""
+        montages = self._data["xdf:DataFiles"]["xdf:DataFile"]["xdf:Montages"][
+            "xdf:Montage"
+        ]
+
+        crosses = {}
+
+        for montage in montages:
+            channels = montage["xdf:Channels"]["xdf:Channel"]
+            for channel in channels:
+                label = channel["xdf:Label"]
+                lead_1 = channel["xdf:G1"]
+                lead_2 = channel["xdf:G2"]
+                filter_low = channel["xdf:LF"]
+                filter_high = channel["xdf:HF"]
+
+                channel_info = {
+                    "lead_1": lead_1,
+                    "lead_2": lead_2,
+                    "filter": [filter_low, filter_high],
+                }
+
+                if label in crosses.keys():
+                    if not channel_info in crosses[label]:
+                        crosses[label].append(channel_info)
+                else:
+                    crosses[label] = [channel_info]
+
+        return crosses
+
+    @property
     def epochs(self):
         """Extracts epoch information
 
@@ -145,9 +177,12 @@ class OpenXDF(object):
             header["last_name"] = scorer["xdf:LastName"]
 
             staging = []
-            if scorer["xdf:SleepStages"] is None or scorer["xdf:SleepStages"]["xdf:SleepStage"] is None:
+            if (
+                scorer["xdf:SleepStages"] is None
+                or scorer["xdf:SleepStages"]["xdf:SleepStage"] is None
+            ):
                 continue
-            
+
             for epoch in scorer["xdf:SleepStages"]["xdf:SleepStage"]:
                 e = {}
                 e["EpochNumber"] = int(epoch["xdf:EpochNumber"])
@@ -212,7 +247,7 @@ class OpenXDF(object):
                 for e in scorer[head][body]:
                     if e is None or type(e) is not dict:
                         continue
-                    
+
                     clean_e = {clean_title(k): v for k, v in e.items()}
                     clean_body.append(clean_e)
 
