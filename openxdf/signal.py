@@ -2,13 +2,14 @@
 
 """
 openxdf.signal
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 This module allows users to read the raw signal data associated with PSG files
 """
 
+import numpy as np
 from .exceptions import XDFSourceError
-from .helpers import _bytestring_to_num, _restruct_channel_epochs
+from .helpers import _bytestring_to_num, _restruct_channel_epochs, timeit
 
 
 class Signal(object):
@@ -160,18 +161,51 @@ class Signal(object):
             byteorder = frame_info["Endian"]
             signed = channel["Signed"] == "true"
 
-            epochs_numeric_list = []
+            epoch_array = np.array([])
             epochs_bytes = epochs_bytes_dict[channel_name]
 
             for epoch in epochs_bytes:
                 epochs_numeric = _bytestring_to_num(
                     epoch, sample_width, byteorder, signed
                 )
-                epochs_numeric_list.append(epochs_numeric)
+                if epoch_array.size:
+                    try:
+                        epoch_array = np.concatenate((epoch_array, epochs_numeric))
+                    except ValueError:
+                        pass
+                else:
+                    epoch_array = epochs_numeric
 
-            epochs_numeric_dict[channel_name] = epochs_numeric_list
+            epochs_numeric_dict[channel_name] = epoch_array
 
         return epochs_numeric_dict
+
+    def cross_channels(self):
+        numeric_epochs = self.to_numeric()
+        montages = self._xdf.montages
+        output = {}
+
+        for montage in montages.keys():
+            channel_1_name = montages[montage][0]["lead_1"]
+            channel_2_name = montages[montage][0]["lead_2"]
+
+            if channel_1_name is None and channel_2_name is None:
+                output[montage] = []
+                continue
+            elif channel_1_name is None:
+                output[montage] = numeric_epochs[channel_2_name]
+                continue
+            elif channel_2_name is None:
+                output[montage] = numeric_epochs[channel_1_name]
+                continue
+
+            channel_1 = np.array([np.array(i) for i in numeric_epochs[channel_1_name]])
+            channel_2 = np.array([np.array(i) for i in numeric_epochs[channel_2_name]])
+            channel_diff = channel_1 - channel_2
+            output[montage] = channel_diff
+
+        del numeric_epochs
+        return output
 
     def _edf_header(self):
         """Returns .edf header string

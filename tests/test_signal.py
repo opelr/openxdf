@@ -45,7 +45,14 @@ class Signal_Test(unittest.TestCase):
         assert "FP1" in numeric.keys()
 
         total_epochs = self.signal._frame_information["Num_Epochs"]
-        assert len(numeric["FP1"]) == total_epochs
+        assert len(numeric["FP1"]) == total_epochs - 1
+
+    def test_cross_channels(self):
+        cross = self.signal.cross_channels()
+        montages = self.signal._xdf.montages
+
+        assert type(cross) is dict
+        assert all([i in list(cross.keys()) for i in list(montages.keys())])
 
     def test_edf_header(self):
         edf_header = self.signal._edf_header()

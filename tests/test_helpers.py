@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .context import openxdf
+import numpy as np
 import unittest
 
 
@@ -39,12 +40,12 @@ class Helpers_Test(unittest.TestCase):
         byte_int_list = openxdf.helpers._bytestring_to_num(
             bytestring, sample_width, byteorder, signed
         )
-        assert type(byte_int_list) is list
+        assert type(byte_int_list) is np.ndarray
 
         epoch_length = frame_info["EpochLength"]
         sample_freq = channel["SampleFrequency"]
 
-        assert len(byte_int_list) == epoch_length * sample_freq
+        assert len(byte_int_list[0]) == epoch_length * sample_freq
 
     def test_clean_title(self):
         assert openxdf.helpers.clean_title("xdf:Test") == "Test"

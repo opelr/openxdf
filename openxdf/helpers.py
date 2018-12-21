@@ -10,6 +10,8 @@ Helper functions
 import re
 from struct import iter_unpack
 from itertools import chain
+import numpy as np
+from time import time
 
 
 def clean_title(title: str) -> str:
@@ -84,4 +86,21 @@ def _bytestring_to_num(bytestring, sample_width, byteorder, signed) -> list:
         fmtc = fmt + c.upper()
 
     conversion = iter_unpack(fmtc, bytestring)
-    return list(chain(*conversion))
+    return np.array([list(chain(*conversion))])
+
+
+def timeit(method):
+    """Deorator function to help with timing
+    
+    Args:
+        method (function): Function to time
+    """
+
+    def timed(*args, **kw):
+        ts = time()
+        result = method(*args, **kw)
+        te = time()
+        print("%r  %2.2f ms" % (method.__name__, (te - ts) * 1000))
+        return result
+
+    return timed
