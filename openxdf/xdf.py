@@ -255,7 +255,6 @@ class OpenXDF(object):
 
         return events
 
-    @property
     def dataframe(self, epochs=True, events=True) -> pd.DataFrame:
         """Returns DataFrame of scoring, epoch, and event information.
 
@@ -305,12 +304,26 @@ class OpenXDF(object):
                 events_df["EpochNumber"] = events_df["ElapsedTime"].apply(
                     lambda x: int(ceil(x.seconds / 30))
                 )
+                epoch_seconds = events_df["ElapsedTime"].apply(
+                    lambda x: (x - x.floor("30s"))
+                )
+                events_df["EpochTime"] = epoch_seconds.apply(
+                    lambda y: float(".".join([str(y.seconds), str(y.microseconds)]))
+                )
 
                 ## Reset index and return
                 events_df = events_df.sort_values(
                     ["EpochNumber", "Event", "Class", "Scorer"]
                 )
                 events_df = events_df.reset_index(drop=True)
+
+            if "CustomEvents" in events_df["Event"].unique():
+                custom_events = [
+                    {"CEType": k, "CEName": self.custom_event_list[k]["name"]}
+                    for k in self.custom_event_list.keys()
+                ]
+                custom_events_df = pd.DataFrame(custom_events)
+                events_df = events_df.merge(custom_events_df, on="CEType")
 
         # Merge DataFrames
         output_df = pd.DataFrame()
