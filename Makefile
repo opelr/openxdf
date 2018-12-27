@@ -10,3 +10,10 @@ package-dist:
 
 upload-dist:
 	pipenv run python -m twine upload dist/*
+
+install-jupyter:
+	jupyter kernelspec uninstall openxdf-env
+	pipenv run python -m ipykernel install --user --name openxdf-env --display-name "OpenXDF Env"
+
+run-jupyter:
+	pipenv run jupyter notebook
