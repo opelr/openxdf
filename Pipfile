@@ -6,6 +6,10 @@ name = "pypi"
 [packages]
 pandas = "*"
 xmltodict = "*"
+matplotlib = "*"
+ipykernel = "*"
+scipy = "*"
+openxdf = {path = "./dist/openxdf-0.5.0-py3-none-any.whl"}
 
 [dev-packages]
 black = "*"
