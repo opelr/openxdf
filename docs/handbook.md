@@ -1,4 +1,9 @@
-# OpenXDF Documentation
+\title{OpenXDF Documentation}
+\author{Ryan Opel - opelr@ohsu.edu}
+\date{2018-12-28 -- v0.5.0}
+\maketitle
+
+\rule{\linewidth}{.4pt}
 
 ## Overview
 
@@ -6,11 +11,17 @@
 
 `.xdf` files are XML-formatted header files that provide all of the information necessary to interpret a signal data file for a polysomnogram (PSG; sleep study). This module gives users simple methods of accessing the data stored in these documents, and helps associate the header information stored in `.xdf` files together with the raw data it"s referencing.
 
+<!-- <div class="page"/> -->
+\newpage
+
 ## Installation
 
 Users can install `openxdf` with `pip` by running the command `pip install openxdf`.
 
 Note: Python 3.6 or greater is required to install openxdf.
+
+<!-- <div class="page"/> -->
+\newpage
 
 ## Use
 
@@ -23,7 +34,7 @@ An example:
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
 >>> xdf.header
 {"ID": "Example", "EpochLength": 30, "FrameLength": 1, "Endian": "little",
-"File": "example.rawdata"}
+"File": "example.data"}
 >>> xdf.sources
 [{"SourceName": "FP1", "Unit": 1e-06, "UseGridScale": "false",
   "MinSamplingRate": 200, "MinSampleWidth": 1, "Ignore": "false",
@@ -33,12 +44,29 @@ An example:
   {...},
 ]
 
->>> signals = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
->>> signals.to_numeric(["FP1", "EOG"])
-{"FP1": [[100, -10, 5, -25,...], [200, -20, 10, -50, ...]],
-"EOG": [[10, -35, 25, -40,...], [65, 20, -100, -10, ...]]}
->>> signals.to_edf("/output/path/.../example.edf")
+>>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.data")
+>>> signal.list_channels
+["EOG-L", "EOG-R", "F3-A2", "F4-A1", "C3-A2", "C4-A1", "O1-A2",
+ "O2-A1", ...]
+>>> signal.read_file(["EOG-L", "C4-A1"])
+{'EOG-L': array([[-890, -885, -803, ...,  393,  440,  422],
+                 [ 494,  396,  451, ...,  323,  338,  420],
+                 [ 504,  439,  493, ...,  251,  300,  244],
+                 ...,
+                 [  47, -104,  -79, ...,    9, -149,  -78],
+                 [  26,  -92,  -79, ...,   28, -105,  -64],
+                 [  44,  -74,  -92, ...,  -38, -172,  -80]]),
+ 'C4-A1': array([[ 554,  504,  478, ..., -226, -259, -238],
+                 [-194, -226, -231, ...,    8,   41,   68],
+                 [ 134,  164,  181, ..., -128, -188, -163],
+                 ...,
+                 [ -29,    4,    8, ...,    3,   35,    9],
+                 [ -30,   -6,    0, ...,  -26,   -5,   -8],
+                 [ -39,   -8,   -8, ...,  -46,  -36,  -53]])}
 ```
+
+<!-- <div class="page"/> -->
+\newpage
 
 ## API Reference
 
@@ -69,7 +97,7 @@ Wrapper for `.xdf` files with a number of attributes for accessing various piece
 ##### Attributes
 
 | Attribute         | Description |
-|-------------------|-------------|
+|-------------|---------------------------------------------------------------------|
 | [id](#openxdf.openxdf.id) | Returns embedded patient ID. |
 | [start_time](#openxdf.openxdf.start_time) | Return the start time of the PSG study. |
 | [header](#openxdf.openxdf.header) | Returns general file encoding information. |
@@ -80,6 +108,9 @@ Wrapper for `.xdf` files with a number of attributes for accessing various piece
 | [custom_event_list](#openxdf.openxdf.custom_event_list) | Returns a dictionary of the custom events defined across scorers. |
 | [events](#openxdf.openxdf.events) | Returns a dict of all events across all scorers, including custom events. |
 | [dataframe](#openxdf.openxdf.dataframe) | Returns DataFrame of scoring information and optional epoch and event information. |
+
+<!-- <div class="page"/> -->
+\newpage
 
 #### openxdf.OpenXDF.id
 
@@ -102,6 +133,9 @@ Returns embedded patient ID.
 "Example"
 ```
 
+<!-- <div class="page"/> -->
+\newpage
+
 #### openxdf.OpenXDF.start_time
 
 `OpenXDF.start_time`
@@ -123,6 +157,9 @@ Return the start time of the PSG study.
 datetime.datetime(2016, 4, 22, 22, 14, 57, 792999)
 ```
 
+<!-- <div class="page"/> -->
+\newpage
+
 #### openxdf.OpenXDF.header
 
 `OpenXDF.header`
@@ -142,8 +179,11 @@ Returns general file encoding information.
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
 >>> xdf.header
 {"ID": "Example", "EpochLength": 30, "FrameLength": 1, "Endian": "little",
-"File": "example.rawdata"}
+ "File": "example.data"}
 ```
+
+<!-- <div class="page"/> -->
+\newpage
 
 #### openxdf.OpenXDF.sources
 
@@ -172,6 +212,9 @@ Return information on raw data sources.
 ]
 ```
 
+<!-- <div class="page"/> -->
+\newpage
+
 #### openxdf.OpenXDF.montages
 
 `OpenXDF.montages`
@@ -195,6 +238,9 @@ Return information on PSG montages (e.g. crossed sources that create a true EEG/
  ...
 }
 ```
+
+<!-- <div class="page"/> -->
+\newpage
 
 #### openxdf.OpenXDF.epochs
 
@@ -226,6 +272,9 @@ Return complex, interpreted information for each epoch (i.e. 30-second sleep per
 ]
 ```
 
+<!-- <div class="page"/> -->
+\newpage
+
 #### openxdf.OpenXDF.scoring
 
 `OpenXDF.scoring`
@@ -245,14 +294,19 @@ Return information about sleep scoring for each epoch (i.e. 30-second sleep peri
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
 >>> xdf.scoring
 [{"header": {"first_name": "Polysmith", "last_name": None},
-  "staging": [{"EpochNumber": 517, "Stage": "R"}, {"EpochNumber": 3, "Stage": "R"},
-              {"EpochNumber": 520, "Stage": "R"}, {"EpochNumber": 6, "Stage": "W"},
+  "staging": [{"EpochNumber": 517, "Stage": "R"},
+              {"EpochNumber": 3, "Stage": "R"},
+              {"EpochNumber": 520, "Stage": "R"},
+              {"EpochNumber": 6, "Stage": "W"},
               ...
              ]
  },
 ...
 ]
 ```
+
+<!-- <div class="page"/> -->
+\newpage
 
 #### openxdf.OpenXDF.custom_event_list
 
@@ -273,10 +327,14 @@ Returns a dictionary of the custom events defined across scorers.
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
 >>> xdf.custom_event_list
 {"1": {"name": "Bruxism", "default_dur": 2, "min_dur": 1, "max_dur": 10},
- "2": {"name": "Cheyne-Stokes Breathing", "default_dur": 10, "min_dur": 1, "max_dur": 0},
+ "2": {"name": "Cheyne-Stokes Breathing", "default_dur": 10, "min_dur": 1,
+       "max_dur": 0},
  "3": {"name": "Microarousal", "default_dur": 3, "min_dur": 0, "max_dur": 0}
 }
 ```
+
+<!-- <div class="page"/> -->
+\newpage
 
 #### openxdf.OpenXDF.events
 
@@ -312,6 +370,9 @@ Returns a dict of all events across all scorers, including custom events.
 }
 ```
 
+<!-- <div class="page"/> -->
+\newpage
+
 #### openxdf.OpenXDF.dataframe
 
 `OpenXDF.dataframe(epochs=True, events=True)`
@@ -332,13 +393,16 @@ Returns DataFrame of scoring information and optional epoch and event informatio
 
 ```python
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> xdf.dataframe
+>>> xdf.dataframe()
       EpochNumber Stage     Scorer  ...          Event      ElapsedTime
 0               1  None     Andrea  ...  Desaturations  00:00:17.090004
 1               1     W  Polysmith  ...            NaN              NaN
 2               1  None       Wade  ...  Desaturations  00:00:17.094002
 ...
 ```
+
+<!-- <div class="page"/> -->
+\newpage
 
 ### openxdf.Signal
 
@@ -360,7 +424,7 @@ Wrapper for raw signal data files.
 
 ```python
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
+>>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.data")
 >>> signal
 "<Signal [Example]>
 ```
@@ -368,13 +432,15 @@ Wrapper for raw signal data files.
 ##### Attributes
 
 | Attribute            | Description |
-|----------------------|-------------|
-| [_frame_information](#openxdf.signal._frame_information) |
-| [_read_file](#openxdf.signal._read_file) |
-| [to_numeric](#openxdf.signal.to_numeric) |
-| [cross_channels](#openxdf.signal.cross_channels) |
-| [_edf_header](#openxdf.signal._edf_header) |
-| [to_edf_raw](#openxdf.signal.to_edf_raw) |
+|----------------|------------------------------------------------------------------|
+| [_frame_information](#openxdf.signal._frame_information) | Returns information about the XDF dataframe and signal channels. |
+| [_source_information](#openxdf.signal._source_information) |  Returns information about the XDF source channels. |
+| [list_channels](#openxdf.signal.list_channels) |  List all channels defined in XDF montage. |
+| [read_file](#openxdf.signal.read_file) | Read interlaced channels from binary signal file and return dictionary of bandpass-filtered signal data. |
+| [_edf_header](#openxdf.signal._edf_header) | In progress. |
+
+<!-- <div class="page"/> -->
+\newpage
 
 #### openxdf.Signal._frame_information
 
@@ -393,7 +459,7 @@ Returns information about the XDF dataframe and signal channels.
 
 ```python
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
+>>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.data")
 >>> signal._frame_information
 {'FrameLength': 1, 'EpochLength': 30, 'Endian': 'little', 'Num_Epochs': 924,
  'FrameWidth': 14750,
@@ -407,76 +473,102 @@ Returns information about the XDF dataframe and signal channels.
 }
 ```
 
-#### openxdf.Signal._read_file
+<!-- <div class="page"/> -->
+\newpage
 
-`Signal._read_file`
+#### openxdf.Signal._source_information
+
+`Signal._source_information`
 
 ##### Description
 
-Returns signal file as bytestring.
+Returns information about the XDF source channels.
 
 ##### Parameters
 
 * Returns:
-    * _bytes_: Entire file as bytes.
+    * _dict_: Dictionary containing the start location and width within a single frame for each channel.
 
 ##### Examples
 
 ```python
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
->>> signal._read_file
-b"..."
-```
-
-#### openxdf.Signal.to_numeric
-
-`Signal.to_numeric`
-
-##### Description
-
-Converts selection of channels from binary to a numeric vector.
-
-##### Parameters
-
-* Args:
-    * channels (_List[str]_): (Default, None). List of specific channels, default returns all.
-* Returns:
-    * _Dict[np.array]_: Dictionary containing nested numpy arrays, one array per source, one row per epoch.
-
-##### Examples
-
-```python
->>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
->>> signal.to_numeric(channels=["FP1"])
-{"FP1": arrary([[100, -10, 5, -25,...],
-                [200, -20, 10, -50, ...],
-                ...]])
+>>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.data")
+>>> signal._source_information
+{"PG1": {"Start": 8000, "Width": 400},
+ "A2": {"Start": 9200, "Width": 400},
+ ...,
 }
 ```
 
-#### openxdf.Signal.cross_channels
+<!-- <div class="page"/> -->
+\newpage
 
-`Signal.cross_channels`
+#### openxdf.Signal.list_channels
+
+`Signal.list_channels`
 
 ##### Description
 
-**In Progress**
+List all channels defined in XDF montage.
 
 ##### Parameters
 
-* Args:
 * Returns:
+    * _list_: List containing all the channels in XDF montages.
 
 ##### Examples
 
 ```python
 >>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
->>> signal
-
+>>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.data")
+>>> signal.list_channels
+["EOG-L", "EOG-R", "F3-A2", ...]
 ```
+
+<!-- <div class="page"/> -->
+\newpage
+
+#### openxdf.Signal.read_file
+
+`Signal.read_file(channels=None)`
+
+##### Description
+
+Read interlaced channels from binary signal file and return dictionary of bandpass-filtered signal data.
+
+##### Parameters
+
+* Args:
+    * channels (_list_): List of channel names (from `list_channels`). Defaults to None, which loads all channels.
+* Returns:
+    * _dict_: Dictionary of np.arrays, one per channel.
+
+##### Examples
+
+```python
+>>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
+>>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.data")
+>>> signal.read_file(["EOG-L", "C4-A1"])
+{'EOG-L': array([[-890, -885, -803, ...,  393,  440,  422],
+                 [ 494,  396,  451, ...,  323,  338,  420],
+                 [ 504,  439,  493, ...,  251,  300,  244],
+                 ...,
+                 [  47, -104,  -79, ...,    9, -149,  -78],
+                 [  26,  -92,  -79, ...,   28, -105,  -64],
+                 [  44,  -74,  -92, ...,  -38, -172,  -80]]),
+ 'C4-A1': array([[ 554,  504,  478, ..., -226, -259, -238],
+                 [-194, -226, -231, ...,    8,   41,   68],
+                 [ 134,  164,  181, ..., -128, -188, -163],
+                 ...,
+                 [ -29,    4,    8, ...,    3,   35,    9],
+                 [ -30,   -6,    0, ...,  -26,   -5,   -8],
+                 [ -39,   -8,   -8, ...,  -46,  -36,  -53]])
+}
+```
+
+<!-- <div class="page"/> -->
+\newpage
 
 #### openxdf.Signal._edf_header
 
@@ -484,39 +576,12 @@ Converts selection of channels from binary to a numeric vector.
 
 ##### Description
 
-Returns .edf header string.
+In progress
 
 ##### Parameters
 
-* Returns:
-    * _str_: 
+In progress
 
 ##### Examples
 
-```python
->>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
->>> signal
-
-```
-
-#### openxdf.Signal.to_edf_raw
-
-`Signal.to_edf_raw`
-
-##### Description
-
-
-
-##### Parameters
-
-
-
-##### Examples
-
-```python
->>> xdf = openxdf.OpenXDF("/path/to/file/.../example.xdf")
->>> signal = openxdf.Signal(xdf, "/path/to/file/.../example.rawdata")
->>> signal
-
-```
+In progress
