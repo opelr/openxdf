@@ -49,6 +49,6 @@ class XDF_Test(unittest.TestCase):
         assert len(scoring) >= 1
 
     def test_dataframe(self):
-        df = self.xdf.dataframe
+        df = self.xdf.dataframe()
         assert type(df) is pd.DataFrame
         assert not df.empty

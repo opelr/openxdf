@@ -61,7 +61,7 @@ class Signal(object):
         """Returns information about the XDF dataframe and signal channels
 
         Returns:
-            dict: [description]
+            dict: Dictionary of information about the XDF dataframe
             {"FrameLength": _, "EpochLength": _, "Endian": _, "FrameWidth": _,
              "Channels": [
                  {"SourceName": _, "SampleWidth": _, "SampleFrequency": _,
@@ -108,10 +108,13 @@ class Signal(object):
 
     @property
     def _source_information(self):
-        """[summary]
+        """Returns information about the XDF source channels
         
         Returns:
-            [type]: [description]
+            dict: {"PG1": {"Start": 8000, "Width": 400},
+                   "A2": {"Start": 9200, "Width": 400},
+                   ...,
+                  }
         """
         sources = {}
         channels = self._xdf.montages.keys()
@@ -143,22 +146,21 @@ class Signal(object):
 
     @property
     def list_channels(self):
-        """[summary]
+        """List all channels defined in XDF montage
         
         Returns:
-            [type]: [description]
+            list: ["EOG-L", "EOG-R", "F3-A2", ...]
         """
         return list(self._xdf.montages.keys())
 
     def read_file(self, channels=None):
-        """[summary]
-            channels ([type], optional): Defaults to None. [description]
-        
-        Raises:
-            ValueError: [description]
+        """Read interlaced channels from binary signal file
+
+        Args:
+            channels (list, optional): Defaults to None. List of channels to read.
         
         Returns:
-            [type]: [description]
+            dict: Dictionary of np.arrays, one per channel.
         """
         if type(channels) is str:
             channels = [channels]
@@ -211,7 +213,7 @@ class Signal(object):
             
             as_numeric[channel] = np.vstack(epochs_conversion)
 
-        # Cross channels
+        # Cross and filter channels
         cross = {}
         for channel in channels:
             lead1_name = self._xdf.montages[channel][0]["lead_1"]
