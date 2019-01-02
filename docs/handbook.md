@@ -1,6 +1,6 @@
 \title{OpenXDF Documentation}
 \author{Ryan Opel - opelr@ohsu.edu}
-\date{2018-12-28 -- v0.5.0}
+\date{2019-01-02 -- v0.5.1}
 \maketitle
 
 \rule{\linewidth}{.4pt}
@@ -540,7 +540,7 @@ Read interlaced channels from binary signal file and return dictionary of bandpa
 ##### Parameters
 
 * Args:
-    * channels (_list_): List of channel names (from `list_channels`). Defaults to None, which loads all channels.
+    * channels (_list_): List of channel names (from `list_channels`).
 * Returns:
     * _dict_: Dictionary of np.arrays, one per channel.
 

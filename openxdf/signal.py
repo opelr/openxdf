@@ -153,11 +153,11 @@ class Signal(object):
         """
         return list(self._xdf.montages.keys())
 
-    def read_file(self, channels=None):
+    def read_file(self, channels: list):
         """Read interlaced channels from binary signal file
 
         Args:
-            channels (list, optional): Defaults to None. List of channels to read.
+            channels (list): List of channels to read.
         
         Returns:
             dict: Dictionary of np.arrays, one per channel.
@@ -166,13 +166,9 @@ class Signal(object):
             channels = [channels]
         if type(channels) is list:
             pass
-
-        if channels is not None:
-            if not all([i in self.list_channels for i in channels]):
-                raise ValueError("All channels must be listed in 'xdf.montages'.")
-        else:
-            channels = self.list_channels
-
+        if not all([i in self.list_channels for i in channels]):
+            raise ValueError("All channels must be listed in 'list_channels'.")
+        
         channel_binary = {}
         frame_info = self._frame_information
         sources = self._source_information
