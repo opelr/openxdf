@@ -18,6 +18,7 @@ from .helpers import (
 )
 
 
+
 class Signal(object):
     """Core Signal object.
 
@@ -49,9 +50,11 @@ class Signal(object):
                          [ -39,   -8,   -8, ...,  -46,  -36,  -53]])}
     """
 
-    def __init__(self, xdf, filepath):
+    def __init__(self, xdf, filepath, start=0, end=1e9):
         self._xdf = xdf
         self._fpath = filepath
+        self.start = start
+        self.end = end
 
     def __repr__(self):
         return f"<Signal [{self._xdf.id}]>"
@@ -173,6 +176,7 @@ class Signal(object):
         frame_info = self._frame_information
         sources = self._source_information
         frame_width = frame_info["FrameWidth"]
+        frame_length = frame_info["FrameLength"]
 
         for channel in channels:
             lead1_name = self._xdf.montages[channel][0]["lead_1"]
@@ -184,6 +188,9 @@ class Signal(object):
                     start_location=sources[lead1_name]["Start"],
                     channel_width=sources[lead1_name]["Width"],
                     frame_width=frame_width,
+                    frame_length=frame_length,
+                    start = self.start,
+                    end = self.end,
                 )
             
             if lead2_name is not None and lead2_name not in channel_binary.keys():
@@ -192,6 +199,9 @@ class Signal(object):
                     start_location=sources[lead2_name]["Start"],
                     channel_width=sources[lead2_name]["Width"],
                     frame_width=frame_width,
+                    frame_length=frame_length,
+                    start = self.start,
+                    end = self.end,
                 )
 
         # Convert to numeric
@@ -206,7 +216,7 @@ class Signal(object):
             for epoch in channel_binary[channel]:
                 epochs_num = _bytestring_to_num(epoch, sample_width, byteorder, signed)
                 epochs_conversion.append(epochs_num)
-            
+            print(len(epochs_conversion))
             as_numeric[channel] = np.vstack(epochs_conversion)
 
         # Cross and filter channels
