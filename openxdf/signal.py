@@ -18,7 +18,6 @@ from .helpers import (
 )
 
 
-
 class Signal(object):
     """Core Signal object.
 
@@ -216,7 +215,7 @@ class Signal(object):
             for epoch in channel_binary[channel]:
                 epochs_num = _bytestring_to_num(epoch, sample_width, byteorder, signed)
                 epochs_conversion.append(epochs_num)
-            print(len(epochs_conversion))
+            
             as_numeric[channel] = np.vstack(epochs_conversion)
 
         # Cross and filter channels
