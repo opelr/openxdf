@@ -91,15 +91,16 @@ def read_channel_from_file(fpath, start_location, channel_width, frame_width, fr
     Returns:
         list: List containing one bytestring per period for the channel.
     """
-    end_time = int(os.path.getsize(fpath)/frame_width) - 1
+    end_time = os.path.getsize(fpath)//frame_width - 1
+    
     if end > end_time:
         end = end_time
     
     if start % frame_length != 0:
-        start = start - (start % frame_length)
+        start -= (start % frame_length)
     
     if end % frame_length != 0:
-        end = end - (end % frame_length)
+        end -= (end % frame_length)
     
     assert start < end, 'Start time must be less than end time!'
     
