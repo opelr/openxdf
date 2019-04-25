@@ -16,6 +16,7 @@ from math import ceil
 
 from .helpers import clean_title
 
+
 class OpenXDF(object):
     """Core OpenXDF object. Wraps a single XDF header document.
     """
@@ -345,5 +346,3 @@ class OpenXDF(object):
 
         output_df = output_df.reset_index(drop=True)
         return output_df
-
-## Remove later.  Just for testing purposes
