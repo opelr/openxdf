@@ -15,6 +15,7 @@ from .helpers import (
     read_channel_from_file,
     butter_bandpass,
     butter_bandpass_filter,
+    clean_title
 )
 
 
@@ -80,7 +81,15 @@ class Signal(object):
 
         channels = {}
         total_width = 0
+        
         for source in self._xdf.sources:
+            
+            # Sometimes "xdf:" or "nti:" still appended to front of key?
+            for key in source.keys():
+                if ':' in key:
+                    new_key = clean_title(key)
+                    source[new_key] = source.pop(key)
+            
             channel = {}
             channel["SourceName"] = source["SourceName"]
             sample_width = source["SampleWidth"]
