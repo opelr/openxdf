@@ -265,7 +265,7 @@ class Signal(object):
             cross[channel] = filtered_data
         return cross
     
-    def _channel_info(self, channels):
+    def _channel_info(self, channels=None):
         """ Returns information about each channel, including sample frequency,
         physical minimum value, physical maximum value, and units.
     
@@ -276,6 +276,10 @@ class Signal(object):
             dict: Dictionary of dictionaries of informaton derived from 
             source_information for each channel.
         """
+        # Default is to display all channel info
+        if channels is None:
+            channels = self.list_channels
+            
         if type(channels) is str:
             channels = [channels]
         if not all([channel in self.list_channels for channel in channels]):
@@ -287,13 +291,19 @@ class Signal(object):
         for channel in channels:
             lead1_name = self._xdf.montages[channel][0]["lead_1"]
             lead2_name = self._xdf.montages[channel][0]["lead_2"]
-            if lead1_name is None:
+            print(channel)
+            print(lead1_name)
+            print(lead2_name)
+            if lead1_name is None and lead2_name is None:
+                continue
+            elif lead1_name is None:
                 channel_info[channel] = sources[lead2_name]
             elif lead2_name is None:
                 channel_info[channel] = sources[lead1_name]
             else:
                 channel_info[channel] = sources[lead1_name]
         return channel_info
+            
 
     # TODO: EDF functions should take desired channels as an argument, and
     #       should use montage channels, not raw sources.
