@@ -90,10 +90,12 @@ class Signal(object):
                 raise XDFSourceError("Source sample frequency has 0 value.")
             if sample_width == 0:
                 raise XDFSourceError("Source sample width has 0 value.")
-
             channel["SampleWidth"] = sample_width
             channel["SampleFrequency"] = sample_freq
             channel["ChannelWidth"] = sample_width * sample_freq * frame_length
+            channel["PhysicalMax"] = source["PhysicalMax"]
+            channel["PhysicalMin"] = source["PhysicalMin"]
+            channel["Unit"] = source["Unit"]
             channel["Signed"] = source["Signed"]
             channel["StartLocation"] = total_width
             channels[channel["SourceName"]] = channel
@@ -132,6 +134,19 @@ class Signal(object):
                 sources[lead1_name]["Width"] = frame_info["Channels"][lead1_name][
                     "ChannelWidth"
                 ]
+                sources[lead1_name]["SampleFrequency"] = frame_info["Channels"][lead1_name][
+                    "SampleFrequency"
+                ]
+                sources[lead1_name]["PhysicalMax"] = frame_info["Channels"][lead1_name][
+                    "PhysicalMax"
+                ]
+                sources[lead1_name]["PhysicalMin"] = frame_info["Channels"][lead1_name][
+                    "PhysicalMin"
+                ]
+                sources[lead1_name]["Unit"] = frame_info["Channels"][lead1_name][
+                    "Unit"
+                ]
+                
 
             if lead2_name is not None and lead2_name not in sources.keys():
                 sources[lead2_name] = {}
@@ -140,6 +155,18 @@ class Signal(object):
                 ]
                 sources[lead2_name]["Width"] = frame_info["Channels"][lead2_name][
                     "ChannelWidth"
+                ]
+                sources[lead2_name]["SampleFrequency"] = frame_info["Channels"][lead2_name][
+                    "SampleFrequency"
+                ]
+                sources[lead2_name]["PhysicalMax"] = frame_info["Channels"][lead2_name][
+                    "PhysicalMax"
+                ]
+                sources[lead2_name]["PhysicalMin"] = frame_info["Channels"][lead2_name][
+                    "PhysicalMin"
+                ]
+                sources[lead2_name]["Unit"] = frame_info["Channels"][lead2_name][
+                    "Unit"
                 ]
 
         return sources
@@ -237,6 +264,36 @@ class Signal(object):
             filtered_data = butter_bandpass_filter(signal_data, filter_low, filter_high, sample_freq)
             cross[channel] = filtered_data
         return cross
+    
+    def _channel_info(self, channels):
+        """ Returns information about each channel, including sample frequency,
+        physical minimum value, physical maximum value, and units.
+    
+        Args:
+            channels (list): List of channels.
+    
+        Returns:
+            dict: Dictionary of dictionaries of informaton derived from 
+            source_information for each channel.
+        """
+        if type(channels) is str:
+            channels = [channels]
+        if not all([channel in self.list_channels for channel in channels]):
+            raise ValueError("All channels must be listed in 'list_channels'.")
+        
+        sources = self._source_information
+        
+        channel_info = {}
+        for channel in channels:
+            lead1_name = self._xdf.montages[channel][0]["lead_1"]
+            lead2_name = self._xdf.montages[channel][0]["lead_2"]
+            if lead1_name is None:
+                channel_info[channel] = sources[lead2_name]
+            elif lead2_name is None:
+                channel_info[channel] = sources[lead1_name]
+            else:
+                channel_info[channel] = sources[lead1_name]
+        return channel_info
 
     # TODO: EDF functions should take desired channels as an argument, and
     #       should use montage channels, not raw sources.
