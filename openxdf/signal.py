@@ -52,8 +52,6 @@ class Signal(object):
     def __init__(self, xdf, filepath, start=0, end=1e9):
         self._xdf = xdf
         self._fpath = filepath
-        self.start = start
-        self.end = end
 
     def __repr__(self):
         return f"<Signal [{self._xdf.id}]>"
@@ -155,7 +153,7 @@ class Signal(object):
         """
         return list(self._xdf.montages.keys())
 
-    def read_file(self, channels: list):
+    def read_file(self, channels: list, start, end):
         """Read interlaced channels from binary signal file
 
         Args:
@@ -188,8 +186,8 @@ class Signal(object):
                     channel_width=sources[lead1_name]["Width"],
                     frame_width=frame_width,
                     frame_length=frame_length,
-                    start = self.start,
-                    end = self.end,
+                    start = start,
+                    end = end,
                 )
             
             if lead2_name is not None and lead2_name not in channel_binary.keys():
@@ -199,8 +197,8 @@ class Signal(object):
                     channel_width=sources[lead2_name]["Width"],
                     frame_width=frame_width,
                     frame_length=frame_length,
-                    start = self.start,
-                    end = self.end,
+                    start = start,
+                    end = end,
                 )
 
         # Convert to numeric
