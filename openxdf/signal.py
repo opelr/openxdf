@@ -6,10 +6,11 @@ openxdf.signal
 
 This module allows users to read the raw signal data associated with PSG files
 """
-
+##### Playground version
 import numpy as np
-from .exceptions import XDFSourceError
-from .helpers import (
+import re
+from exceptions import XDFSourceError
+from helpers import (
     _bytestring_to_num,
     timeit,
     read_channel_from_file,
@@ -50,7 +51,7 @@ class Signal(object):
                          [ -39,   -8,   -8, ...,  -46,  -36,  -53]])}
     """
 
-    def __init__(self, xdf, filepath, start=0, end=1e9):
+    def __init__(self, xdf, filepath):
         self._xdf = xdf
         self._fpath = filepath
 
@@ -84,7 +85,7 @@ class Signal(object):
         
         for source in self._xdf.sources:
             
-            # Sometimes "xdf:" or "nti:" still appended to front of key?
+            # Sometimes "xdf:" or "nti:" appended to front of key
             for key in source.keys():
                 if ':' in key:
                     new_key = clean_title(key)
@@ -222,8 +223,8 @@ class Signal(object):
                     channel_width=sources[lead1_name]["Width"],
                     frame_width=frame_width,
                     frame_length=frame_length,
-                    start = start,
-                    end = end,
+                    start=start,
+                    end=end,
                 )
             
             if lead2_name is not None and lead2_name not in channel_binary.keys():
@@ -233,8 +234,8 @@ class Signal(object):
                     channel_width=sources[lead2_name]["Width"],
                     frame_width=frame_width,
                     frame_length=frame_length,
-                    start = start,
-                    end = end,
+                    start=start,
+                    end=end,
                 )
 
         # Convert to numeric
@@ -273,14 +274,14 @@ class Signal(object):
             filtered_data = butter_bandpass_filter(signal_data, filter_low, filter_high, sample_freq)
             cross[channel] = filtered_data
         return cross
-    
+
     def _channel_info(self, channels=None):
         """ Returns information about each channel, including sample frequency,
         physical minimum value, physical maximum value, and units.
-    
+        
         Args:
-            channels (list): List of channels.
-    
+        channels (list): List of channels.
+        
         Returns:
             dict: Dictionary of dictionaries of informaton derived from 
             source_information for each channel.
@@ -300,19 +301,22 @@ class Signal(object):
         for channel in channels:
             lead1_name = self._xdf.montages[channel][0]["lead_1"]
             lead2_name = self._xdf.montages[channel][0]["lead_2"]
-            print(channel)
-            print(lead1_name)
-            print(lead2_name)
             if lead1_name is None and lead2_name is None:
-                continue
+                channel_info[channel] = {}
             elif lead1_name is None:
                 channel_info[channel] = sources[lead2_name]
             elif lead2_name is None:
                 channel_info[channel] = sources[lead1_name]
             else:
                 channel_info[channel] = sources[lead1_name]
+            
+        # test if dictionary is empty
+        for channel in channel_info.keys():
+            if not bool(channel_info[channel]):
+                raise ValueError(f"No information available for channel {channel}!")
         return channel_info
             
+        
 
     # TODO: EDF functions should take desired channels as an argument, and
     #       should use montage channels, not raw sources.
