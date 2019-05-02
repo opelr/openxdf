@@ -6,7 +6,7 @@ openxdf.signal
 
 This module allows users to read the raw signal data associated with PSG files
 """
-##### Playground version
+
 import numpy as np
 import re
 from exceptions import XDFSourceError
@@ -275,7 +275,7 @@ class Signal(object):
             cross[channel] = filtered_data
         return cross
 
-    def _channel_info(self, channels=None):
+    def channel_info(self, channels=None):
         """ Returns information about each channel, including sample frequency,
         physical minimum value, physical maximum value, and units.
         
