@@ -8,7 +8,6 @@ This module allows users to read the raw signal data associated with PSG files
 """
 
 import numpy as np
-import re
 from exceptions import XDFSourceError
 from helpers import (
     _bytestring_to_num,
