@@ -83,13 +83,7 @@ class Signal(object):
         total_width = 0
         
         for source in self._xdf.sources:
-            
-            # Sometimes "xdf:" or "nti:" appended to front of key
-            for key in source.keys():
-                if ':' in key:
-                    new_key = clean_title(key)
-                    source[new_key] = source.pop(key)
-            
+                   
             channel = {}
             channel["SourceName"] = source["SourceName"]
             sample_width = source["SampleWidth"]
