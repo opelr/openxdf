@@ -102,7 +102,7 @@ def read_channel_from_file(fpath, start_location, channel_width, frame_width, fr
     if end % frame_length != 0:
         end -= (end % frame_length)
     
-    assert start < end, 'Start time must be less than end time!'
+    assert start <= end, 'Start time must be less than or equal to end time!'
     
     output = []
     f = open(fpath, "rb")

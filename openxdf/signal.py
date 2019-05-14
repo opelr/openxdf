@@ -183,7 +183,7 @@ class Signal(object):
         """
         return list(self._xdf.montages.keys())
 
-    def read_file(self, channels: list, start, end):
+    def read_file(self, channels: list, start = 0, end = 1e9):
         """Read interlaced channels from binary signal file
 
         Args:
