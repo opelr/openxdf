@@ -35,4 +35,4 @@ from openxdf.xdf import OpenXDF
 from openxdf.signal import Signal
 
 
-__all__ = ["OpenXDF", "Signal"]
+__all__ = ["OpenXDF", "Signal", "exceptions", "helpers", "pretty"]

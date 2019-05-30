@@ -92,18 +92,24 @@ class OpenXDF(object):
         sources = self._data["xdf:DataFiles"]["xdf:DataFile"]["xdf:Sources"][
             "xdf:Source"
         ]
-
-        for source in sources:
+        
+        newSources = []
+        
+        for i,source in enumerate(sources):
+            
+            newSources.append({})
+            
             for k, v in source.items():
+                
                 new_key = clean_title(k)
-                source[new_key] = source.pop(k)
-
+                newSources[i][new_key] = source[k]
+                
                 if re.match("[-]?[0-9]+[\.e][-]?[0-9]+", str(v)) is not None:
-                    source[new_key] = float(str(v))
+                    newSources[i][new_key] = float(str(v))
                 elif re.match("[-]?[0-9]+", str(v)) is not None:
-                    source[new_key] = int(str(v))
-
-        return sources
+                    newSources[i][new_key] = int(str(v))
+            
+        return newSources
 
     @property
     def montages(self):

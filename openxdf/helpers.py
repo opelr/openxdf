@@ -76,7 +76,7 @@ def timeit(method):
     return timed
 
 
-def read_channel_from_file(fpath, start_location, channel_width, frame_width):
+def read_channel_from_file(fpath, start_location, channel_width, frame_width, frame_length = 1, start = 0, end = 1e9):
     """Returns channel information from interleaved binary file
     
     Args:
@@ -84,16 +84,31 @@ def read_channel_from_file(fpath, start_location, channel_width, frame_width):
         start_location (int): Number of bytes from start of window.
         channel_width (int): Number of bytes the channel takes.
         frame_width (int): Width of all channels in a single period.
+        frame_length (int): Length of each frame in seconds.
+        start (int): Start of recording to be returned in seconds.
+        end (int): End of recording to be returned in seconds.
     
     Returns:
         list: List containing one bytestring per period for the channel.
     """
-    start = 0
+    end_time = os.path.getsize(fpath)//frame_width - 1
+    
+    if end > end_time:
+        end = end_time
+    
+    if start % frame_length != 0:
+        start -= (start % frame_length)
+    
+    if end % frame_length != 0:
+        end -= (end % frame_length)
+    
+    assert start <= end, 'Start time must be less than or equal to end time!'
+    
     output = []
     f = open(fpath, "rb")
 
-    while start < os.path.getsize(fpath):
-        f.seek(start + start_location, 0)
+    for i in range(start,end+1):
+        f.seek(i*frame_width + start_location, 0)
         output.append(f.read(channel_width))
         start += frame_width
     f.close()
